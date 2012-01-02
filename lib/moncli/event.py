@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#       communication.py
-#       
-#       Copyright 2010 Jelle Smet <web@smetj.net>
-#       
-#       This file is part of Monitoring python library.
-#       
-#           Monitoring python library is free software: you can redistribute it and/or modify
-#           it under the terms of the GNU General Public License as published by
-#           the Free Software Foundation, either version 3 of the License, or
-#           (at your option) any later version.
-#       
-#           Monitoring python library is distributed in the hope that it will be useful,
-#           but WITHOUT ANY WARRANTY; without even the implied warranty of
-#           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#           GNU General Public License for more details.
-#       
-#           You should have received a copy of the GNU General Public License
-#           along with Monitoring python library.  If not, see <http://www.gnu.org/licenses/>.
+#	   communication.py
+#	   
+#	   Copyright 2010 Jelle Smet <web@smetj.net>
+#	   
+#	   This file is part of Monitoring python library.
+#	   
+#		   Monitoring python library is free software: you can redistribute it and/or modify
+#		   it under the terms of the GNU General Public License as published by
+#		   the Free Software Foundation, either version 3 of the License, or
+#		   (at your option) any later version.
+#	   
+#		   Monitoring python library is distributed in the hope that it will be useful,
+#		   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#		   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#		   GNU General Public License for more details.
+#	   
+#		   You should have received a copy of the GNU General Public License
+#		   along with Monitoring python library.  If not, see <http://www.gnu.org/licenses/>.
 
 from time import tzname
 from time import time
@@ -106,16 +106,16 @@ class Report():
 		if not thresholds.has_key(status) and status != "OK":
 			raise Exception("You define a non OK status while there is no such threshold defined.")
 		self.evaluators[name] = {
-		    'status': status,
-		    'value': value,
-		    'metric': metric,
-		    'evaluator': evaluator,
-		    'thresholds': thresholds,
+			'status': status,
+			'value': value,
+			'metric': metric,
+			'evaluator': evaluator,
+			'thresholds': thresholds,
 		}
 
 	def __object(self):
 		return {
-		    'UUID': self.UUID,
+			'UUID': self.UUID,
 			'requestUUID': self.requestUUID,
 			'timezone': self.timezone,
 			'time': self.time,
@@ -173,7 +173,7 @@ class ReportRequest():
 
 	def __object(self):
 		return {
-		    'UUID':self.UUID,
+			'UUID':self.UUID,
 			'timezone': self.timezone,
 			'time': self.time,
 			'FQDN': self.FQDN,
@@ -206,29 +206,24 @@ class ReportRequest():
 	def integrity(self, request=None):
 		if request == None:
 			request = self.construct()
+
+		requests_to_be_tested = ['timezone', 'time', 'FQDN', 'reason', 'subject', 'target', 'plugin', 'pluginhash']
+		evaluators_to_be_tested = ['thresholds', 'evaluator', 'metric']
+
+		for obj in requests_to_be_tested:
+			if request[obj] == '' or request[obj] == None:
+				raise InvalidReport('%s is not valid' % (obj, ))
+				
 		try:
+			for obj in requests_to_be_tested:
+				if request[obj] == '' or request[obj] == None:
+					raise InvalidReport('%s is not valid' % (obj, ))
+				
 			if not re.match('^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$', request['UUID']):
 				raise InvalidReport('UUID is not valid.')
-			if request['timezone'] == '' or request['timezone'] == None:
-				raise InvalidReport('timezone is not valid.')
-			if request['time'] == '' or request['time'] == None:
-				raise InvalidReport('time is not valid.')
-			if request['FQDN'] == '' or request['FQDN'] == None:
-				raise InvalidReport('FQDN is not valid.')
-			if request['type'] != 'systemRequest' and request['type'] != 'reportRequest':
-				raise InvalidReport('type is not valid.')
-			if request['reason'] == '' or request['reason'] == None:
-				raise InvalidReport('reason is not valid.')
+
 			if request['cycle'] < 0:
 				raise InvalidReport('cycle is not valid.')
-			if request['subject'] == '' or request['subject'] == None:
-				raise InvalidReport('subject is not valid.')
-			if request['target'] == '' or request['target'] == None:
-				raise InvalidReport('target is not valid.')
-			if request['plugin'] == '' or request['plugin'] == None:
-				raise InvalidReport('plugin is not valid.')
-			if request['pluginHash'] == '' or request['pluginHash'] == None:
-				raise InvalidReport('pluginHash has an invalid value.')
 			if request['pluginTimeout']  < 1:
 				raise InvalidReport('pluginTimeout is not valid.')
 			if request['evaluators'] != '' or request['evaluators'] != None:
@@ -236,14 +231,12 @@ class ReportRequest():
 					raise InvalidReport('Evaluators syntax is not correct.')
 
 				for evaluator in request['evaluators']:
-					if isinstance(request['evaluators'][evaluator], dict)
+					if isinstance(request['evaluators'][evaluator], dict):
 						raise InvalidReport('Evaluators syntax is not a dictionary.')
-					if not request['evaluators'][evaluator].has_key("thresholds"):
-						raise InvalidReport('Evaluators syntax does not contain thresholds.')
-					if not request['evaluators'][evaluator].has_key("evaluator"):
-						raise InvalidReport('Evaluators syntax does not contain evaluator.')
-					if not request['evaluators'][evaluator].has_key("metric"):
-						raise InvalidReport('Evaluators syntax does not contain metric.')
+					
+					for obj in evaluators_to_be_tested:
+						if not request['evaluators'][evaluator].has_key(obj):
+							raise InvalidReport('Evaluators syntax does not contain %s' % (obj, ))
 
 			request['message']
 			request['pluginParameters']
@@ -261,7 +254,7 @@ class ReportRequest():
 
 class SystemRequest():
 	def __init__(self):
-		self.variables = [ 'UUID', 'timezone','time','FQDN','type','reason','cycle','subject','target',
+		self.variables = [ 'UUID', 'timezone', 'time', 'FQDN', 'type', 'reason', 'cycle', 'subject', 'target',
 				'command', 'tags', 'message']
 		for variable in self.variables:
 			setattr(self, variable, None)
@@ -289,7 +282,7 @@ class SystemRequest():
 
 	def __object(self):
 		return {
-		    'UUID': self.UUID,
+			'UUID': self.UUID,
 			'timezone': self.timezone,
 			'time': self.time,
 			'FQDN': self.FQDN,
@@ -369,7 +362,7 @@ class Translate():
 		except Exception as err:
 			raise RuntimeError(err)
 
-	def __nagios(self,report=None, sanitize=True):
+	def __nagios(self, report=None, sanitize=True):
 		if report['verbose'] == None or report['verbose'] == '':
 			message = self.__sanitize(data=report['message'], style='nagios')
 		else:
@@ -382,34 +375,39 @@ class Translate():
 		else:
 			performance_data = ''		
 
+		status_service_dict = {
+			'ok': '0',
+			'warning': '1',
+			'critical': '2',
+			'unknown': '3',
+		}
+
+		status_host_dict = {
+			'up': '0',
+			'updown': '1',
+			'down': '2',
+		}
+
 		if report['format'] == "nagios:service":
-			translated_status = '3'
 			if report['status'] == None:
 				report['status'] = 'unknown'
-			if re.match(report['status'], 'ok', re.IGNORECASE):
-				translated_status = '0'
-			elif re.match(report['status'], 'warning', re.IGNORECASE):
-				translated_status = '1'
-			elif re.match(report['status'], 'critical', re.IGNORECASE):
-				translated_status = '2'
-			elif re.match(report['status'], 'unknown', re.IGNORECASE):
-				translated_status = '3'
-			elif report['status'] == None:
+
+			try:
+				translated_status = status_service_dict[report['status'].lower()]
+			except KeyError:
 				translated_status = '3'
 
 			return '[%s] PROCESS_SERVICE_CHECK_RESULT;%s;%s;%s;%s - %s%s' % (report['time'], report['target'], report['subject'], translated_status, report['status'], message, performance_data)
+
 		elif report['format'] == "nagios:host":
-			translated_status = '3'
-			if re.match(report['status'], 'up', re.IGNORECASE):
-				translated_status = '0'
-			elif re.match(report['status'], 'updown', re.IGNORECASE):
-				translated_status = '1'
-			elif re.match(report['status'], 'down', re.IGNORECASE):
-				translated_status = '2'
-			elif re.match(report['status'], 'down', re.IGNORECASE):
+			try:
+				translated_status = status_host_dict[report['status'].lower()]
+			except KeyError:
 				translated_status = '3'
-			elif report['status'] == None:
+
+			if report['status'] == None:
 				translated_status = '3'				
+
 			return '[%s] PROCESS_HOST_CHECK_RESULT;%s;%s;%s - %s%s' % (report['time'], report['target'], translated_status, report['status'], message, performance_data)
 		else:
 			return self.__json(report=report)
