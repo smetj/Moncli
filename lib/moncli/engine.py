@@ -65,13 +65,7 @@ class MoncliCommands():
 			self.logging.put(['Normal', 'Graceful shutdown received. Bye'])
 			time.sleep(2)
 			os.kill(os.getpid(), 2)		
-	def __download(self, data):
-		self.logging.put(['Normal', 'Download command received.'])
-		filename=data.split('/')[-1]
-		try:
-			urlretrieve(data, filename)
-		except:
-			raise
+
 	def __scheduler(self, data):
 		if data == 'reset':
 			self.logging.put(['Normal', 'Performing scheduler reset.'])
@@ -117,7 +111,7 @@ class JobScheduler():
 		del(self.jobs[name])
 		del(self.job_refs[name])		
 	def submit(self, data):
-		self.rx_queue.put(data)
+		self.sched.put(data)
 	def shutdown(self):
 		self.save()		
 		self.sched.shutdown()
